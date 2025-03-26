@@ -36,14 +36,19 @@ See [INSTALL.md](INSTALL.md) for details.
 ### 3. Model Training
 - Our training scripts using deepspeed to accelerate training, so you need to configure it properly.
 
-- Generate config by running:
+- Add language embedding to dataset by running:
   ```bash
   python droid_policy_learning/robomimic/scripts/conversion/add_lang_to_converted_data.py --manifest_file droid_policy_learning/dataset.json
   ```
 
+- Generate config by running:
+  ```bash
+  python droid_policy_learning/robomimic/scripts/generate_config.py --dataset <your manifest file> --exp <experiment name>
+  ```
+
 - And then run:
   ```bash
-  accelerate launch droid_policy_learning/robomimic/scripts/train.py --name <exp_name> --ckpt <ckpt_path>
+  accelerate launch droid_policy_learning/robomimic/scripts/train.py --config <config path> --ckpt <ckpt_path>
   ``` 
 
   If you want to finetune on our pretrained model, just download the checkpoint and specify the `ckpt` argument. 
