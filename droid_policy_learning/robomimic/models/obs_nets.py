@@ -22,7 +22,7 @@ from robomimic.utils.python_utils import extract_class_init_kwargs_from_dict
 import robomimic.utils.tensor_utils as TensorUtils
 import robomimic.utils.obs_utils as ObsUtils
 from robomimic.models.base_nets import Module, Sequential, MLP, RNN_Base, ResNet18Conv, SpatialSoftmax, \
-    FeatureAggregator, PointNet, SetTransformer, SetXFPCDEncoder, PointNetEncoderXYZRGB, TrackEncoderXYZT, PointcloudEncoder
+    FeatureAggregator, PointNet, SetTransformer, SetXFPCDEncoder, PointNetEncoderXYZRGB, PointcloudEncoder
 from robomimic.models.obs_core import VisualCore, Randomizer
 from robomimic.models.transformers import PositionalEncoding, GPT_Backbone
 import timm
@@ -109,12 +109,6 @@ def obs_encoder_factory(
             enc_kwargs["core_class"] = 'PointcloudEncoder'
             enc_kwargs["core_kwargs"] = {}
 
-        if "p_track" in k:
-            ObsUtils.register_encoder_core(TrackEncoderXYZT)
-            enc_kwargs["core_class"] = 'TrackEncoderXYZT'
-            enc_kwargs["core_kwargs"] = {}
-        
-        
         if any("camera/image/varied_camera" in s for s in enc.obs_shapes.keys()) and ("camera/image/varied_camera" in k):
             existing_varied_cam = [a for a in enc.obs_shapes.keys() if "camera/image/varied_camera" in a][0]
             share = existing_varied_cam

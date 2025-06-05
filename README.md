@@ -45,6 +45,16 @@ See [INSTALL.md](INSTALL.md) for details.
   ```bash
   python droid_policy_learning/robomimic/scripts/generate_config.py --dataset <your manifest file> --exp <experiment name>
   ```
+  If you wish to train Diffusion Policy or 3D Diffusion Policy, you can generate configuration files for DP2 and DP3 in a similar manner.
+  ```bash
+  python droid_policy_learning/robomimic/scripts/generate_config_dp2.py --dataset <your manifest file> --exp <experiment name>
+  ```
+  ```bash
+  python droid_policy_learning/robomimic/scripts/generate_config_dp3.py --dataset <your manifest file> --exp <experiment name>
+  ```
+  Once the configuration files are created, the subsequent training and evaluation procedures are identical to those of FP3.
+
+
 
 - And then run:
   ```bash
