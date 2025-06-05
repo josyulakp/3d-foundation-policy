@@ -6,6 +6,15 @@
 
 ![](assets/concept.jpg)
 
+
+## Updates
+
+Note: An improved version of FP3 is under development, incorporating enhancements such as point cloud fusion and data augmentation. We will release the updated version shortly.
+
+We will continuously improve this repository. Major updates will be tracked here:
+- **[2025-06-05]** Weights of FP3 pre-trained on DROID release.
+- **[2025-06-05]** Added support for DP2 and DP3 configuration generation for training Diffusion Policy and 3D Diffusion Policy.
+
 ---------
 ## Installation
 
@@ -33,7 +42,10 @@ See [INSTALL.md](INSTALL.md) for details.
   python droid_policy_learning/robomimic/scripts/conversion/add_lang_to_converted_data.py --manifest_file droid_policy_learning/dataset.json
   ```
 
-### 3. Model Training
+### 3. Download Pre-trained Weights
+- You can download the checkpoint pre-trained on DROID by this link: [checkpoint on DROID](https://drive.google.com/file/d/1fx0zYPF-q9BM5bAWcPdG64PTh3Kssir9/view?usp=sharing). It can be used for finetuning or zero-shot evaluation. 
+
+### 4. Model Training
 - Our training scripts using deepspeed to accelerate training, so you need to configure it properly.
 
 - Add language embedding to dataset by running:
@@ -61,9 +73,9 @@ See [INSTALL.md](INSTALL.md) for details.
   accelerate launch droid_policy_learning/robomimic/scripts/train.py --config <config path> --ckpt <ckpt_path>
   ``` 
 
-  If you want to finetune on our pretrained model, just download the checkpoint and specify the `ckpt` argument. 
+  If you want to finetune on our pre-trained model, just download the checkpoint and specify the `ckpt` argument. 
 
-### 4. Evaluation
+### 5. Evaluation
 - To evaluate a policy on a robot, you can just run:
   ```bash
   cat <your_language_instruction> > ./eval_params/lang_command.txt
