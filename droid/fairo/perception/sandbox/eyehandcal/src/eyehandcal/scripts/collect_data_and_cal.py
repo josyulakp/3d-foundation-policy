@@ -21,7 +21,7 @@ import torch
 import cv2
 
 from torchcontrol.transform import Rotation as R
-from polymetis import RobotInterface
+from franky import Robot, Affine
 from realsense_wrapper import RealsenseAPI
 
 from eyehandcal.utils import detect_corners, quat2rotvec, build_proj_matrix, mean_loss, find_parameter, rotmat, dist_in_hull, \
@@ -63,32 +63,46 @@ def sample_poses_from_data(xyz_points, orient_points, num_points):
 
 def robot_poses(ip_address, pose_generator, time_to_go=3):
     # Initialize robot interface
-    robot = RobotInterface(
-        ip_address=ip_address,
-        enforce_version=False
-    )
+    robot = Robot(ip_address)
 
-    # Get reference state
-    robot.go_home()
+    robot.move_joints([0, 0, 0, -1.57, 0, 1.57, 0])
     for i, (pos_sampled, ori_sampled) in enumerate(pose_generator):
         print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
 
-        state_log = robot.move_to_ee_pose(position=pos_sampled,orientation=ori_sampled.as_quat(),time_to_go = time_to_go)
-        print(f"Length of state_log: {len(state_log)}")
-        if len(state_log) != time_to_go * robot.hz:
-            print(f"warning: log incorrect length. {len(state_log)} != {time_to_go * robot.hz}")
+        # Create target pose using franky's Affine
+        target_pose = Affine(
+            translation=pos_sampled.numpy(),
+            quaternion=ori_sampled.as_quat().numpy()
+        )
+        
+        # Move to target pose
+        robot.move(target_pose)
+        print(f"Moved to target pose")
+        
+        # Wait for robot to stabilize
+        time.sleep(1.0)
+        
+        # Check if robot has stabilized by comparing consecutive poses
         while True:
-            pos0, quat0 = robot.get_ee_pose()
+            pose0 = robot.current_pose
+            pos0 = torch.tensor([pose0.translation.x, pose0.translation.y, pose0.translation.z])
+            quat0 = torch.tensor([pose0.quaternion.w, pose0.quaternion.x, pose0.quaternion.y, pose0.quaternion.z])
+            
             time.sleep(1)
-            pos1, quat1 = robot.get_ee_pose()
-            diffpos = (pos0-pos1).norm()
+            
+            pose1 = robot.current_pose
+            pos1 = torch.tensor([pose1.translation.x, pose1.translation.y, pose1.translation.z])
+            quat1 = torch.tensor([pose1.quaternion.w, pose1.quaternion.x, pose1.quaternion.y, pose1.quaternion.z])
+            
+            diffpos = torch.norm(pos0 - pos1)
             if diffpos < 0.01:
                 break
             print(f'robot moving diffpos={diffpos}')
 
-        print(f"Current pose  pos={pos0}, quat={quat0}")
+        print(f"Current pose  pos={pos1}, quat={quat1}")
         yield pos1, quat1
-    robot.go_home()
+
+    robot.move_joints([0, 0, 0, -1.57, 0, 1.57, 0])
 
 
 # helper function
@@ -117,7 +131,7 @@ def main(argv):
     parser=argparse.ArgumentParser()
 
     parser.add_argument('--seed', default=0, type=int, help="random seed for initializing solution")
-    parser.add_argument('--ip', default='100.96.135.68', help="robot ip address")
+    parser.add_argument('--ip', default='172.16.0.2', help="robot ip address")
     parser.add_argument('--datafile', default='caldata.pkl', help="file to either load or save camera data")
     parser.add_argument('--overwrite', default=False, action='store_true', help="overwrite existing datafile, if it exists")
     parser.add_argument('--marker-id', default=9, type=int, help="ID of the ARTag marker in the image")

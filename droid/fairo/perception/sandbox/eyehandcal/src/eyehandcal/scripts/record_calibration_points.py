@@ -13,14 +13,14 @@ import numpy as np
 import fairotag as frt
 from realsense_wrapper import RealsenseAPI
 
-from polymetis import RobotInterface
+from franky import Robot
 
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ip", default="100.96.135.68", help="robot ip address")
+    parser.add_argument("--ip", default="172.16.0.2", help="robot ip address")
     parser.add_argument("--marker-id", type=int, default=9, help="ARTag marker id")
     parser.add_argument("--marker-length", type=float, default=0.05, help="ARTag length in meters")
     args = parser.parse_args()
@@ -51,12 +51,15 @@ if __name__ == "__main__":
             ax[1].set_title(f"Camera {i} depth")
         plt.show()
 
-    robot = RobotInterface(ip_address=args.ip, enforce_version=False)
+    robot = Robot(args.ip)
+    robot.relative_dynamics_factor = 0.05
 
     print("In readonly mode, move the robot to a new pose.")
     xyz_poses = []
     while True:
-        xyz_pose = robot.get_ee_pose()[0].numpy().squeeze().tolist()
+        # state = robot.state
+        current_pose = robot.current_pose
+        xyz_pose = [current_pose.translation.x, current_pose.translation.y, current_pose.translation.z]
         view_imgs()
         result = input(f"New xyz pose: {xyz_pose}. Press enter to save, `c` to skip, or `exit` to exit.")
         if result == "c":
@@ -68,7 +71,9 @@ if __name__ == "__main__":
 
     quat_poses = []
     while True:
-        quat_pose = robot.get_ee_pose()[1].numpy().squeeze().tolist()
+        # state = robot.state
+        current_pose = robot.current_pose
+        quat_pose = [current_pose.quaternion.w, current_pose.quaternion.x, current_pose.quaternion.y, current_pose.quaternion.z]
         view_imgs()
         result = input(f"New orientation: {quat_pose}. Press enter to save, `c` to skip, or `exit` to exit.")
         if result == "c":
